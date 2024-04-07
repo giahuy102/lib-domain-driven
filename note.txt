@@ -1,0 +1,5 @@
+https://www.baeldung.com/spring-boot-custom-starter
+
+https://stackoverflow.com/questions/68980144/spring-boot-prioritize-bean-creation-order-from-external-jar
+
+https://medium.com/@omernaci/lazy-loading-in-spring-beans-e6a9945e874d
