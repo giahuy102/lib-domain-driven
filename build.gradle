@@ -11,7 +11,7 @@ repositories {
 	mavenCentral()
 }
 
-apply plugin: 'java'
+apply plugin: 'java-library'
 apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
 apply plugin: 'maven-publish'
@@ -29,6 +29,16 @@ bootJar {
 
 jar {
 	enabled = true
+	archiveClassifier = ''
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+			artifact jar
+//            from components.java
+        }
+    }
 }
 
 configurations {
