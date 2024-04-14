@@ -15,7 +15,7 @@ public abstract class AggregateRoot<Id extends Serializable> extends DomainEntit
     @Transient
     private final transient List<Object> domainEvents = new ArrayList<>();
 
-    public <E extends DomainEvent<? extends AggregateRoot<? extends Serializable>>> void  registerEvent(E event) {
+    public void  registerEvent(DomainEvent event) {
         Assert.notNull(event, "Domain event must not be null");
         this.domainEvents.add(event);
     }
