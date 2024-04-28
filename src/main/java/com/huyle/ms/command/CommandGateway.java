@@ -1,7 +1,7 @@
 package com.huyle.ms.command;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.util.ClassUtils;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -12,16 +12,18 @@ import java.util.stream.Collectors;
 
 public class CommandGateway {
 
-    @Autowired
-    private ApplicationContext context;
+    private final ApplicationContext context;
 
-    private List<CommandHandler<? extends Command>> commandHandlers;
     private final Map<Class<?>, CommandHandler<? extends Command>> handlerMapper = new HashMap<>();
 
     private static final String HANDLE_METHOD = "handle";
 
-    public CommandGateway() {
-        commandHandlers = findAllCommandHandlerBeans();
+    public CommandGateway(ApplicationContext context) {
+        this.context = context;
+    }
+
+    public void init() {
+        List<CommandHandler<? extends Command>> commandHandlers = findAllCommandHandlerBeans();
         addHandlersToMapper(commandHandlers);
     }
 
@@ -38,7 +40,7 @@ public class CommandGateway {
     private void addHandlersToMapper(List<CommandHandler<? extends Command>> commandHandlers) {
         commandHandlers.forEach(handler -> {
             try {
-                Method handleMethod = handler.getClass().getMethod(HANDLE_METHOD);
+                Method handleMethod = findHandleMethodForHandler(handler);
                 Class<?> commandType = handleMethod.getParameterTypes()[0];
                 handlerMapper.put(commandType, handler);
             } catch(Exception e) {
@@ -57,4 +59,13 @@ public class CommandGateway {
         return handlerMapper.get(command.getClass());
     }
 
+    private Method findHandleMethodForHandler(CommandHandler<? extends Command> handler) {
+        Method[] methods = ClassUtils.getUserClass(handler.getClass()).getDeclaredMethods();
+        for (var method : methods) {
+            if (method.getName().equals(HANDLE_METHOD) && !method.getParameterTypes()[0].equals(Command.class)) {
+                return method;
+            }
+        }
+        return null;
+    }
 }
