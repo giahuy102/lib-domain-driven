@@ -1,11 +1,14 @@
 package com.huyle.ms.domain;
 
+import lombok.Getter;
+
 import java.util.Date;
 import java.util.UUID;
 
+@Getter
 public abstract class DomainEvent {
-    private Date createdAt;
-    private UUID eventId;
+    protected Date createdAt;
+    protected UUID eventId;
 
     public DomainEvent() {
         this.createdAt = new Date();
