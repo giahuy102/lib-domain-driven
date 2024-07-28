@@ -14,7 +14,7 @@ public class CommandGateway {
 
     private final ApplicationContext context;
 
-    private final Map<Class<?>, CommandHandler<? extends Command>> handlerMapper = new HashMap<>();
+    private final Map<Class<?>, CommandHandler<? extends Command, ?>> handlerMapper = new HashMap<>();
 
     private static final String HANDLE_METHOD = "handle";
 
@@ -23,21 +23,21 @@ public class CommandGateway {
     }
 
     public void init() {
-        List<CommandHandler<? extends Command>> commandHandlers = findAllCommandHandlerBeans();
+        List<CommandHandler<? extends Command, ?>> commandHandlers = findAllCommandHandlerBeans();
         addHandlersToMapper(commandHandlers);
     }
 
     @SuppressWarnings("unchecked")
-    private List<CommandHandler<? extends Command>> findAllCommandHandlerBeans() {
+    private List<CommandHandler<? extends Command, ?>> findAllCommandHandlerBeans() {
         String[] beans = context.getBeanDefinitionNames();
         return Arrays.stream(beans)
                 .map(beanName -> context.getBean(beanName))
                 .filter(bean -> CommandHandler.class.isAssignableFrom(bean.getClass()))
-                .map(handler -> (CommandHandler<? extends Command>)handler)
+                .map(handler -> (CommandHandler<? extends Command, ?>)handler)
                 .collect(Collectors.toList());
     }
 
-    private void addHandlersToMapper(List<CommandHandler<? extends Command>> commandHandlers) {
+    private void addHandlersToMapper(List<CommandHandler<? extends Command, ?>> commandHandlers) {
         commandHandlers.forEach(handler -> {
             try {
                 Method handleMethod = findHandleMethodForHandler(handler);
@@ -50,16 +50,16 @@ public class CommandGateway {
     }
 
     @SuppressWarnings("unchecked")
-    public <C extends Command> void handle(C command) {
-        CommandHandler<C> handler = (CommandHandler<C>)findHandlerForCommand(command);
-        handler.handle(command);
+    public <C extends Command, P> P handle(C command) {
+        CommandHandler<C, P> handler = (CommandHandler<C, P>)findHandlerForCommand(command);
+        return handler.handle(command);
     }
 
-    private CommandHandler<? extends Command> findHandlerForCommand(Command command) {
+    private CommandHandler<? extends Command, ?> findHandlerForCommand(Command command) {
         return handlerMapper.get(command.getClass());
     }
 
-    private Method findHandleMethodForHandler(CommandHandler<? extends Command> handler) {
+    private Method findHandleMethodForHandler(CommandHandler<? extends Command, ?> handler) {
         Method[] methods = ClassUtils.getUserClass(handler.getClass()).getDeclaredMethods();
         for (var method : methods) {
             if (method.getName().equals(HANDLE_METHOD) && !method.getParameterTypes()[0].equals(Command.class)) {
